@@ -1,5 +1,5 @@
 import { Page } from 'playwright'
-import { moveToCenterOfElement, clickOn, clickOnHistory, expandTopic, sleep, writeText } from '../util'
+import { moveToCenterOfElement, clickOn, clickOnHistory, expandTopic, sleep } from '../util'
 
 export async function showNumericPlot(browser: Page) {
   await expandTopic('kitchen/coffee_maker', browser)
@@ -45,12 +45,12 @@ export async function showNumericPlot(browser: Page) {
 async function valuePreviewGuttersShowChartIcon(name: string, browser: Page) {
   for (let retries = 0; retries < 2; retries += 1) {
     try {
-      return await browser.locator(`//*[contains(@data-test-type, "ShowChart")][contains(@data-test, "${name}")]`)
+      return await browser.locator(`//*[contains(@data-test-type, "ShowChart")][contains(@data-test, "${name}")]`).first()
     } catch {
       // ignore
     }
   }
-  return browser.locator(`//*[contains(@data-test-type, "ShowChart")][contains(@data-test, "${name}")]`)
+  return browser.locator(`//*[contains(@data-test-type, "ShowChart")][contains(@data-test, "${name}")]`).first()
 }
 
 async function chartSettings(name: string, browser: Page) {

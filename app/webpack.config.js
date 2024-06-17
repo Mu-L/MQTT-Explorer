@@ -41,6 +41,7 @@ module.exports = {
   devServer: {
     // contentBase: './dist', // content not from webpack
     hot: true,
+    liveReload: true,
   },
   target: 'electron-renderer',
   mode: 'production',
@@ -54,7 +55,15 @@ module.exports = {
       // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
       {
         test: /\.tsx?$/,
-        loader: 'ts-loader',
+        use: [
+          {
+            loader: 'ts-loader',
+            // options: {
+            //   configFile: './tsconfig.json',
+            // },
+          },
+        ],
+        exclude: /node_modules/,
       },
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader' },
@@ -81,7 +90,6 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({ template: './index.html', file: './build/index.html', inject: false }),
     // new BundleAnalyzerPlugin(),
-    new webpack.HotModuleReplacementPlugin(),
     // new webpack.IgnorePlugin({
     //   resourceRegExp: /\.\/build\/Debug\/addon/,
     //   contextRegExp: /heapdump$/
@@ -95,5 +103,11 @@ module.exports = {
   externals: {
     // "react": "React",
     // "react-dom": "ReactDOM"
+  },
+  cache: {
+    type: 'filesystem',
+  },
+  optimization: {
+    runtimeChunk: 'single',
   },
 }

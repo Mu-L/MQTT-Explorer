@@ -5,6 +5,7 @@ import * as path from 'path'
 import { ElectronApplication, _electron as electron } from 'playwright'
 
 import mockMqtt, { stop as stopMqtt } from './mock-mqtt'
+import { default as MockSparkplug } from './mock-sparkplugb'
 import { clearOldTopics } from './scenarios/clearOldTopics'
 import { clearSearch, searchTree } from './scenarios/searchTree'
 import { clickOnHistory, createFakeMousePointer, hideText, showText, sleep } from './util'
@@ -20,6 +21,7 @@ import { showMenu } from './scenarios/showMenu'
 import { showNumericPlot } from './scenarios/showNumericPlot'
 import { showOffDiffCapability } from './scenarios/showOffDiffCapability'
 import { showZoomLevel } from './scenarios/showZoomLevel'
+import { showSparkPlugDecoding } from './scenarios/showSparkplugDecoding'
 
 /**
  *  A convenience method that handles gracefully cleaning up the test run.
@@ -34,6 +36,14 @@ process.on('unhandledRejection', (error: Error | any) => {
   console.error('unhandledRejection', error.message, error.stack)
   process.exit(1)
 })
+
+setTimeout(
+  () => {
+    console.error('Timeout reached')
+    process.exit(1)
+  },
+  60 * 10 * 1000
+)
 
 const runningUiTestOnCi = os.platform() === 'darwin' ? [] : ['--runningUiTestOnCi']
 
@@ -64,6 +74,7 @@ async function doStuff() {
   const scenes = new SceneBuilder()
   await scenes.record('connect', async () => {
     await connectTo('127.0.0.1', page)
+    await MockSparkplug.run() // Start sparkplug client after connect or birth topics will be missed
     await sleep(1000)
   })
 
@@ -110,6 +121,11 @@ async function doStuff() {
     await sleep(1000)
   })
 
+  await scenes.record('sparkplugb-decoding', async () => {
+    await showText('SparkplugB Decoding', 2000, page, 'top')
+    await showSparkPlugDecoding(page)
+  })
+
   // disable this scenario for now until expandTopic is sorted out
   // await scenes.record('delete_retained_topics', async () => {
   //   await hideText(page)
@@ -141,10 +157,17 @@ async function doStuff() {
     await sleep(3000)
   })
 
+  setTimeout(() => {
+    console.log('Forced quit')
+    process.exit(0)
+  }, 10 * 1000)
   stopMqtt()
-  console.log('Stopped mqtt')
+  console.log('Stopped mqtt client')
 
   cleanUp(scenes, electronApp)
+
+  // Force exit since there appear to be open handles
+  process.exit(0)
 }
 
 doStuff()
